@@ -14,7 +14,7 @@ ordered flows.
 ## Installation
 
 ```bash
-python -m pip install "git+https://github.com/Alberto-Manzoni/PyTestFlow.git@main"
+python -m pip install "git+https://github.com/Alberto-Manzoni/PyTestFlow.git@v0.1.0"
 ```
 
 ### Init the workspace
@@ -37,18 +37,9 @@ Open the web gui at the url indicated by the CLI.
 
 ## Core concepts
 
-- Steps are Prefect tasks via `@step` and specialized decorators.
-- `TestSequence` are Prefect flows that aggregate child states.
-- `ptf_context` shares `globals`, `locals`, `results`, and `current_step`.
-- `SequentialProcessModel` orchestrates callbacks in this order:
+- Steps are Prefect tasks defined using `@step` or specialized step decorators.
+- A `TestSequence` is a Prefect flow that aggregates and executes multiple steps, tracking their states.
+- `ptf_context` is a shared runtime context that provides access to `globals`, `locals`, `results`, and `current_step`.
+- `SequentialProcessModel` orchestrates execution callbacks in a fixed lifecycle:
   `pre_uut -> main_sequence -> post_uut -> report -> database_logging`.
-- Process model main output is stored as both `main_results` and `main_result`
-  for compatibility.
-
-## Project structure
-
-1. `pytestflow/core`: wrappers, context, states, sequence execution.
-2. `pytestflow/steps`: built-in step decorators.
-3. `pytestflow/flow_utils`: flow helper utilities.
-4. `pytestflow/reporting`: HTML/JSON reporting helpers.
-
+- The main output of the process model is stored in both `main_results` and `main_result` for backward compatibility.

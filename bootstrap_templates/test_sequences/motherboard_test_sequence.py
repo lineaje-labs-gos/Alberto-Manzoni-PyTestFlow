@@ -122,6 +122,4 @@ def motherboard_sequence() -> TestSequence:
 
 PROCESS_HOOKS = {
     "main_sequence": motherboard_sequence,
-    # "report": report_sequence,  # opzionale
-    # "pre_uut": pre_uut_sequence, ecc.
 }

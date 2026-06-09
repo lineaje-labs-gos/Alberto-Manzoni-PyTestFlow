@@ -9,7 +9,14 @@ from pytestflow.steps.string_check import string_check_step
 from pytestflow.steps.waveform_limit import waveform_limit_step
 import pandas as pd
 
-
+# ------------------------------------------------------------
+# USER INTERACTION STEP (message pop-up)
+# ------------------------------------------------------------
+# This step pauses execution and requests user interaction.
+#
+# Typical use case:
+# - operator confirmation
+# - manual validation before continuing a sequence
 @message_pop_up_step(
     name="operator_confirmation",
     title="Operator Check",
@@ -17,46 +24,91 @@ import pandas as pd
     buttons=["Ok", "Other Option 1", "Other Option 2"],
     show_response_box=False,
 )
-def operator_confirmation():
+def operator_confirmation():    
     return "Operator confirmed bench is ready"
 
-
+# ------------------------------------------------------------
+# PASS / FAIL STEP
+# ------------------------------------------------------------
+# Returns a boolean result (True = pass, False = fail).
+#
+# Typical use case:
+# - digital signals
+# - readiness checks
+# - simple validation logic
 @pass_fail_step(name="power_good_check")
 def power_good_check():
     # Typical use case: a digital status pin or a single readiness condition.
     return True
 
-
+# ------------------------------------------------------------
+# NUMERIC LIMIT STEP (single value)
+# ------------------------------------------------------------
+# The function MUST return a numeric value (int or float).
+#
+# Supported comparison modes:
+# - "ge"      → greater or equal
+# - "le"      → less or equal
+# - "between" → value within [min, max]
+# - "outside" → value outside [min, max]
+#
+# Typical use case:
+# - validating a single measurement against limits
 @numeric_limit_step(name="vcore_voltage_check", limit=(1.0, 1.3), mode="between")
 def vcore_voltage_check():
     # Typical use case: one scalar analog measurement against limits.
     return 1.15
 
-
+# ------------------------------------------------------------
+# DATAFRAME NUMERIC LIMIT STEP (multi-channel)
+# ------------------------------------------------------------
+# Allows validating multiple values using a structured limit table.
+#
+# Each row defines:
+# - name
+# - limit range
+# - comparison mode
+#
+# Typical use case:
+# - validating multiple related signals at once
 limits_df = pd.DataFrame(
     [
         {"name": "rail_1v0", "limit": (0.95, 1.05), "mode": "between"},
         {"name": "rail_3v3", "limit": (3.2, 3.4), "mode": "between"},
     ]
 )
-
-
 @df_numeric_limits_step(name="multi_rail_check", limits_df=limits_df)
 def multi_rail_check():
     # Typical use case: validate a set of related channels at once.
     return {"rail_1v0": 1.01, "rail_3v3": 3.31}
 
-
+# ------------------------------------------------------------
+# STRING CHECK STEP
+# ------------------------------------------------------------
+# Compares a returned string against an expected value.
+#
+# Supported modes typically include:
+# - "exact"
+#
+# Typical use case:
+# - serial numbers
+# - firmware versions
+# - identifiers
 @string_check_step(name="serial_format_check", expected="MB-2026-A01", match="exact")
 def serial_format_check():
     # Typical use case: exact ID, lot code, firmware tag, or SKU checks.
     return "MB-2026-A01"
 
-
+# ------------------------------------------------------------
+# WAVEFORM LIMIT STEP
+# ------------------------------------------------------------
+# Validates waveform data against upper and lower masks.
+#
+# Typical use case:
+# - oscilloscope captures
+# - signal integrity validation
 lower_mask = [(0, 0.2), (1, 0.2), (2, 0.2), (3, 0.2)]
 upper_mask = [(0, 1.8), (1, 1.8), (2, 1.8), (3, 1.8)]
-
-
 @waveform_limit_step(
     name="clk_waveform_mask_check",
     lower_mask=lower_mask,
@@ -70,13 +122,27 @@ def clk_waveform_mask_check():
     )
     return {"x": [0, 1, 2, 3], "y": [0.6, 0.9, 1.2, 1.1]}
 
-
+# ------------------------------------------------------------
+# ACTION STEP
+# ------------------------------------------------------------
+# Performs an action and optionally stores a value for later use.
+#
+# Typical use case:
+# - logging operator input
+# - saving intermediate results
 @action_step(name="store_operator_note", store_as="operator_note")
 def store_operator_note():
     # Typical use case: save runtime values for later steps/report sections.
     return "Quickstart run completed with one example per step type."
 
-
+# ------------------------------------------------------------
+# SEQUENCE DEFINITION
+# ------------------------------------------------------------
+# A TestSequence defines an ordered execution pipeline.
+#
+# - setup_steps   → initialization phase
+# - main_steps    → core execution steps
+# - cleanup_steps → teardown phase
 def main_sequence() -> TestSequence:
     return TestSequence(
         name="StepTypesQuickstartSequence",
@@ -94,6 +160,9 @@ def main_sequence() -> TestSequence:
     )
 
 
+# ------------------------------------------------------------
+# PROCESS HOOK REGISTRATION
+# ------------------------------------------------------------
 PROCESS_HOOKS = {
     "main_sequence": main_sequence,
 }
