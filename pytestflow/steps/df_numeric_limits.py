@@ -2,7 +2,7 @@ from prefect.artifacts import create_markdown_artifact
 from pytestflow.core.core import StepWrapper
 from pytestflow.core.pytestflow_states import PyTestflowPassed, PyTestflowFailed
 from pytestflow.core.utils import get_data_for_gui
-from pytestflow.steps.common import get_metadata_from_prefect_context
+from pytestflow.steps.common import get_metadata_from_prefect_context, get_runtime_value
 from typing import Callable
 import pandas as pd
 import re
@@ -18,14 +18,17 @@ class DFNumericLimitsStep(StepWrapper):
     def _run(self, *args, **kwargs):
         values = super()._run(*args, **kwargs)
 
+        limits_df = get_runtime_value(self.limits_df)
+
         if not isinstance(values, (dict, pd.Series)):
             raise TypeError("Return value must be dict or pd.Series")
 
         results = []
         overall_status = "passed"
 
-        for _, row in self.limits_df.iterrows():
+        for _, row in limits_df.iterrows():
             varname = row["name"]
+
             try:
                 val = values[varname]
                 limit = row["limit"]
@@ -33,14 +36,18 @@ class DFNumericLimitsStep(StepWrapper):
 
                 if mode == "ge":
                     status = "passed" if val >= limit else "failed"
+
                 elif mode == "le":
                     status = "passed" if val <= limit else "failed"
+
                 elif mode == "between":
                     low, high = limit
                     status = "passed" if low <= val <= high else "failed"
+
                 elif mode == "outside":
                     low, high = limit
                     status = "passed" if val < low or val > high else "failed"
+
                 else:
                     raise ValueError(f"Unsupported mode: {mode}")
 
@@ -78,10 +85,10 @@ class DFNumericLimitsStep(StepWrapper):
         # Send End data to GUI
         get_data_for_gui(self, result_data.get("end_time"), result_data)
 
-
         # Prefect UI artifact (best-effort)
         try:
-            safe_step_name = re.sub(r"[^a-z0-9\\-]", "-", self.name.lower())
+            safe_step_name = re.sub(r"[^a-z0-9\-]", "-", self.name.lower())
+
             md_lines = [
                 f"### Step: `{self.name}`",
                 f"- **Status:** {'✅ PASSED' if overall_status == 'passed' else '❌ FAILED'}",
@@ -90,20 +97,23 @@ class DFNumericLimitsStep(StepWrapper):
 
             if overall_status == "failed":
                 failed_results = [r for r in results if r.get("step_status") != "passed"]
+
                 md_lines += [
                     f"**{len(failed_results)}** variable(s) failed limits.",
                     "",
                     "| Variable | Value | Limit | Mode | Status |",
                     "|---|---|---|---|---|",
                 ]
+
                 for r in failed_results[:10]:
                     md_lines.append(
                         f"| {r.get('name')} | {r.get('value', 'NA')} | {r.get('limit', 'NA')} | "
                         f"{r.get('mode', 'NA')} | {r.get('step_status', 'error')} |"
                     )
+
                 if len(failed_results) > 10:
                     md_lines.append(
-                        f"\n… and **{len(failed_results) - 10} more**. See database/report for full details."
+                        f"\n… and **{len(failed_results) - 10} more**. See full report for details."
                     )
 
             create_markdown_artifact(
@@ -111,13 +121,17 @@ class DFNumericLimitsStep(StepWrapper):
                 markdown="\n".join(md_lines),
                 description=f"DataFrame numeric limits for `{self.name}`",
             )
+
         except Exception:
             pass
 
         return (
             PyTestflowPassed(ptf_result=result_data)
             if overall_status == "passed"
-            else PyTestflowFailed(ptf_result=result_data, message=f"{self.name} failed")
+            else PyTestflowFailed(
+                ptf_result=result_data,
+                message=f"{self.name} failed"
+            )
         )
 
 

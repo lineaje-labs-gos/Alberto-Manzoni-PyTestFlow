@@ -32,7 +32,10 @@ class PassFailStep(StepWrapper):
         return (
             PyTestflowPassed(ptf_result=result_data)
             if passed
-            else PyTestflowFailed(ptf_result=result_data, message=f"{self.name} failed")
+            else PyTestflowFailed(
+                ptf_result=result_data,
+                message=f"{self.name} failed"
+            )
         )
 
 

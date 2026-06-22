@@ -5,7 +5,7 @@ from pytestflow.core.context import ptf_context
 from pytestflow.core.core import StepWrapper
 from pytestflow.core.pytestflow_states import PyTestflowDone, PyTestflowError
 from pytestflow.core.utils import get_data_for_gui
-from pytestflow.steps.common import get_metadata_from_prefect_context
+from pytestflow.steps.common import get_metadata_from_prefect_context, get_runtime_value
 
 
 class FlowControlStep(StepWrapper):
@@ -17,13 +17,15 @@ class FlowControlStep(StepWrapper):
 
     def _run(self, *args, **kwargs):
         try:
-            # Execute user code inside the Prefect task created by StepWrapper.
             result = super()._run(*args, **kwargs)
 
-            if self.store_as:
-                ptf_context.locals[self.store_as] = result
+            next_steps_map = get_runtime_value(self.next_steps)
+            store_as = get_runtime_value(self.store_as)
 
-            actual_next_steps = self.next_steps.get(result, "next")
+            if store_as:
+                ptf_context.locals[store_as] = result
+
+            actual_next_steps = next_steps_map.get(result, "next")
             ptf_context.locals["_ptf_next_step"] = actual_next_steps
 
             result_data = {
@@ -31,11 +33,12 @@ class FlowControlStep(StepWrapper):
                 "output": result,
                 "step_type": self.step_type,
                 "pytestflow_timestamp": datetime.utcnow().isoformat(),
-                "store_as": self.store_as,
-                "flow_control_next_steps":self.next_steps,
-                "selected_next_step":actual_next_steps,
+                "store_as": store_as,
+                "flow_control_next_steps": next_steps_map,
+                "selected_next_step": actual_next_steps,
                 "retry_n": ptf_context.locals.get("retry_n"),
             }
+
             result_data.update(self.get_meta_info())
             result_data.update(get_metadata_from_prefect_context())
 
@@ -45,15 +48,17 @@ class FlowControlStep(StepWrapper):
                 ptf_result=result_data,
                 message="Flow control step completed",
             )
+
         except Exception as exc:
             result_data = {
                 "step_status": "error",
                 "error": str(exc),
                 "step_type": self.step_type,
                 "pytestflow_timestamp": datetime.utcnow().isoformat(),
-                "store_as": self.store_as,                
+                "store_as": get_runtime_value(self.store_as),
                 "retry_n": ptf_context.locals.get("retry_n"),
             }
+
             result_data.update(self.get_meta_info())
             result_data.update(get_metadata_from_prefect_context())
 

@@ -46,3 +46,6 @@ def get_metadata_from_prefect_context():
             pass
 
     return metadata
+
+def get_runtime_value(value):
+    return value() if callable(value) else value

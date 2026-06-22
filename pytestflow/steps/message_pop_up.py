@@ -1,7 +1,7 @@
 from pytestflow.core.core import StepWrapper
 from pytestflow.core.pytestflow_states import PyTestflowDone
 from pytestflow.core.utils import get_data_for_gui
-from pytestflow.steps.common import get_metadata_from_prefect_context
+from pytestflow.steps.common import get_metadata_from_prefect_context, get_runtime_value
 from typing import Callable
 from pytestflow.core.runtime_control import runtime_control
 
@@ -19,22 +19,35 @@ class MessagePopUpStep(StepWrapper):
     def _run(self, *args, **kwargs):
         # Executes inside the Prefect task created by StepWrapper
         value = super()._run(*args, **kwargs)
+
+        show_response_box = get_runtime_value(self.show_response_box)
+        title = get_runtime_value(self.title)
+        msg = get_runtime_value(self.msg)
+        buttons = get_runtime_value(self.buttons)
+        store_as = get_runtime_value(self.store_as)
+
         popup_data = {
-                "isResponseBoxVisible": self.show_response_box,
-                "title": self.title,
-                "msg": self.msg,
-                "buttons": self.buttons
-            }        
+            "isResponseBoxVisible": show_response_box,
+            "title": title,
+            "msg": msg,
+            "buttons": buttons,
+        }
+
         user_response = runtime_control.show_popup(popup_data)
-        
-        if self.store_as:
+
+        if store_as:
             from pytestflow.core.context import ptf_context
-            ptf_context.locals[self.store_as] = user_response
+            ptf_context.locals[store_as] = user_response
 
         result_data = {
             "step_status": "done",
             "step_type": self.step_type,
-            "user_response": user_response
+            "user_response": user_response,
+            "show_response_box": show_response_box,
+            "title": title,
+            "msg": msg,
+            "buttons": buttons,
+            "store_as": store_as,
         }
 
         result_data.update(self.get_meta_info())
@@ -43,10 +56,7 @@ class MessagePopUpStep(StepWrapper):
         # Send End data to GUI
         get_data_for_gui(self, result_data.get("end_time"), result_data)
 
-        return (
-            PyTestflowDone(ptf_result=result_data)
-        )
-
+        return PyTestflowDone(ptf_result=result_data)
 def message_pop_up_step(*, show_response_box=False, title="TITLE_HERE", msg="MSG_HERE", buttons=["Ok"], name=None, store_as=None, autowire=True, **task_kwargs):
     """
     Decorator factory for message pop-up steps.
