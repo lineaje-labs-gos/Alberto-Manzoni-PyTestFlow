@@ -1,11 +1,8 @@
 import argparse
-import os
 import shutil
 import sys
 from pathlib import Path
 from importlib import resources
-
-APP_DIR_NAME = "pytestflow"
 
 # --------------------
 # Template map
@@ -19,21 +16,6 @@ TEMPLATE_SOURCE_MAP = {
 # --------------------
 # Workspace helpers
 # --------------------
-def resolve_workspace_root(custom_path: str | None = None) -> Path:
-    if custom_path:
-        return Path(custom_path).expanduser().resolve()
-
-    home = Path.home()
-    if sys.platform.startswith("win"):
-        base = Path(os.getenv("LOCALAPPDATA") or os.getenv("APPDATA") or (home / "AppData/Local"))
-    elif sys.platform == "darwin":
-        base = home / "Library/Application Support"
-    else:
-        base = Path(os.getenv("XDG_DATA_HOME") or (home / ".local/share"))
-
-    return (base / APP_DIR_NAME).resolve()
-
-
 def workspace_paths(root: Path) -> dict[str, Path]:
     subdirs = ["process_models", "test_sequences", "test_reports", "custom_step_types"]
     paths = {"root": root}
@@ -74,16 +56,9 @@ def _copy_templates(paths: dict[str, Path]) -> list[tuple[str, Path]]:
     return copied
 
 
-def initialize_workspace_interactive() -> dict[str, Path]:
+def initialize_workspace() -> dict[str, Path]:
     print("PyTestFlow workspace initialization:")
-    choice = input(
-        "Install templates in current folder (c) or default location (d)? [d/c]: "
-    ).strip().lower()
-
-    if choice == "c":
-        root = Path.cwd()
-    else:
-        root = resolve_workspace_root()
+    root = Path.cwd().resolve()
 
     paths = workspace_paths(root)
     root.mkdir(parents=True, exist_ok=True)
@@ -167,7 +142,7 @@ def main(argv=None) -> int:
     command = args.command or "start"
 
     if command == "init":
-        initialize_workspace_interactive()
+        initialize_workspace()
         return 0
 
     if command == "start":
