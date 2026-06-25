@@ -14,7 +14,7 @@ ordered flows.
 ## Installation
 
 ```bash
-python -m pip install "git+https://github.com/Alberto-Manzoni/PyTestFlow.git@v0.1.0"
+python -m pip install pytestflow
 ```
 
 ### Init the workspace

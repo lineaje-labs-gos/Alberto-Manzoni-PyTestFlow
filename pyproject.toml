@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytestflow"
+version = "0.2.1"
+description = "Test automation framework inspired by NI TestStand, built on Prefect"
+readme = "readme.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Alberto Manzoni", email = "alb.manzoni@gmail.com" },
+]
+dependencies = [
+    "prefect==3.6.24",
+    "fastapi==0.136.0",
+    "starlette==1.0.0",
+    "pandas",
+    "numpy",
+    "rich",
+    "bottle",
+    "websockets",
+    "fakeredis==2.34.1",
+    "jinja2",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.urls]
+Homepage = "https://github.com/Alberto-Manzoni/PyTestFlow"
+Repository = "https://github.com/Alberto-Manzoni/PyTestFlow"
+Issues = "https://github.com/Alberto-Manzoni/PyTestFlow/issues"
+
+[project.scripts]
+pytestflow = "pytestflow.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pytestflow*", "bootstrap_templates*"]
+exclude = ["tests*", "docs*", "sandbox*"]
+
+[tool.setuptools.package-data]
+bootstrap_templates = ["**/*"]
+pytestflow = [
+    "starter_here.md",
+    "README.md",
+    "core/README.md",
+    "flow_utils/README.md",
+    "steps/README.md",
+    "backend/frontend/**/*",
+]
+
+[tool.setuptools.exclude-package-data]
+"*" = [
+    "__pycache__/*",
+    "*.py[cod]",
+    ".pytest_cache/*",
+]

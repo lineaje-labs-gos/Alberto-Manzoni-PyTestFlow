@@ -1,3 +1,7 @@
-recursive-include bootstrap_templates *.*
-recursive-include pytestflow/backend/frontend *.*
+include readme.md
 include pytestflow/starter_here.md
+recursive-include bootstrap_templates *
+recursive-include pytestflow/backend/frontend *
+global-exclude __pycache__/*
+global-exclude *.py[cod]
+global-exclude .pytest_cache/*
