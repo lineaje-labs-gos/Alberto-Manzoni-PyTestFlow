@@ -1,10 +1,13 @@
 [build-system]
-requires = ["setuptools>=61", "wheel"]
+requires = [
+    "setuptools>=61",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pytestflow"
-version = "0.2.1"
+version = "0.2.2+lineaje.1"
 description = "Test automation framework inspired by NI TestStand, built on Prefect"
 readme = "readme.md"
 requires-python = ">=3.10"
@@ -34,21 +37,34 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Testing",
 ]
+maintainers = [
+    { name = "Lineaje DepFixer", email = "221268890+Lineaje-DepFixer@users.noreply.github.com" },
+]
 
 [project.urls]
-Homepage = "https://github.com/Alberto-Manzoni/PyTestFlow"
-Repository = "https://github.com/Alberto-Manzoni/PyTestFlow"
+Homepage = "https://github.com/lineaje-labs-gos/Alberto-Manzoni-PyTestFlow"
+Repository = "https://github.com/lineaje-labs-gos/Alberto-Manzoni-PyTestFlow"
 Issues = "https://github.com/Alberto-Manzoni/PyTestFlow/issues"
+Tracker = "https://github.com/lineaje-labs-gos/Alberto-Manzoni-PyTestFlow/issues"
 
 [project.scripts]
 pytestflow = "pytestflow.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["pytestflow*", "bootstrap_templates*"]
-exclude = ["tests*", "docs*", "sandbox*"]
+include = [
+    "pytestflow*",
+    "bootstrap_templates*",
+]
+exclude = [
+    "tests*",
+    "docs*",
+    "sandbox*",
+]
 
 [tool.setuptools.package-data]
-bootstrap_templates = ["**/*"]
+bootstrap_templates = [
+    "**/*",
+]
 pytestflow = [
     "starter_here.md",
     "README.md",
